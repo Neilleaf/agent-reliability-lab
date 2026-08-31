@@ -1,4 +1,4 @@
-from agent_reliability_lab.synthetic.generator import generate_snapshot
+from agent_reliability_lab.synthetic.generator import REFERENCE_DATE, generate_snapshot
 from agent_reliability_lab.synthetic.models import OrderStatus, ShipmentStatus
 
 
@@ -100,3 +100,37 @@ def test_snapshot_is_reproducible() -> None:
     second_world = generate_snapshot(seed=42)
 
     assert first_world == second_world
+
+
+def test_historical_events_do_not_occur_after_reference_date() -> None:
+    world = generate_snapshot(seed=42)
+
+    for order in world.orders:
+        assert order.order_date <= REFERENCE_DATE
+
+    for shipment in world.shipments:
+        if shipment.shipped_date is not None:
+            assert shipment.shipped_date <= REFERENCE_DATE
+
+        if shipment.actual_delivery_date is not None:
+            assert shipment.actual_delivery_date <= REFERENCE_DATE
+
+    for invoice in world.invoices:
+        assert invoice.issue_date <= REFERENCE_DATE
+
+
+def test_shipment_chronology_is_consistent() -> None:
+    world = generate_snapshot(seed=42)
+
+    for shipment in world.shipments:
+        if (
+            shipment.shipped_date is not None
+            and shipment.expected_delivery_date is not None
+        ):
+            assert shipment.shipped_date <= shipment.expected_delivery_date
+
+        if (
+            shipment.shipped_date is not None
+            and shipment.actual_delivery_date is not None
+        ):
+            assert shipment.shipped_date <= shipment.actual_delivery_date

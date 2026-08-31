@@ -270,14 +270,11 @@ def generate_orders(
     active_products = [product for product in products if product.active]
 
     start_date = date(2026, 1, 1)
-    date_range_days = (REFERENCE_DATE - start_date).days
 
     orders: list[Order] = []
 
     for index in range(1, count + 1):
         customer = rng.choice(customers)
-
-        order_date = start_date + timedelta(days=rng.randint(0, date_range_days))
 
         status = rng.choices(
             population=[
@@ -298,6 +295,17 @@ def generate_orders(
             ],
             k=1,
         )[0]
+
+        latest_order_date = REFERENCE_DATE
+
+        if status == OrderStatus.DELIVERED:
+            latest_order_date = REFERENCE_DATE - timedelta(days=4)
+        elif status == OrderStatus.SHIPPED:
+            latest_order_date = REFERENCE_DATE - timedelta(days=1)
+
+        date_range_days = (latest_order_date - start_date).days
+
+        order_date = start_date + timedelta(days=rng.randint(0, date_range_days))
 
         number_of_products = rng.randint(1, 4)
 
@@ -379,15 +387,19 @@ def generate_shipments(
         }:
             continue
 
-        shipped_date = order.order_date + timedelta(days=rng.randint(1, 3))
+        shipped_date = min(
+            order.order_date + timedelta(days=rng.randint(1, 3)),
+            REFERENCE_DATE,
+        )
 
         expected_delivery_date = shipped_date + timedelta(days=rng.randint(2, 7))
 
         if order.order_status == OrderStatus.DELIVERED:
             shipment_status = ShipmentStatus.DELIVERED
 
-            actual_delivery_date = expected_delivery_date + timedelta(
-                days=rng.randint(-2, 2)
+            actual_delivery_date = min(
+                expected_delivery_date + timedelta(days=rng.randint(-2, 2)),
+                REFERENCE_DATE,
             )
 
         else:
@@ -472,7 +484,10 @@ def generate_invoices(
             Invoice(
                 invoice_id=f"INV-{invoice_number:05d}",
                 order_id=order.order_id,
-                issue_date=order.order_date + timedelta(days=rng.randint(0, 2)),
+                issue_date=min(
+                    order.order_date + timedelta(days=rng.randint(0, 2)),
+                    REFERENCE_DATE,
+                ),
                 subtotal=order.subtotal,
                 shipping_charge=order.shipping_charge,
                 tax=order.tax,
