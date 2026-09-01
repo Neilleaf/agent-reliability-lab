@@ -1,0 +1,1 @@
+Stop and re-anchor. Do not rely on your memory of earlier implementation details. Based only on the current files/code I provide, tell me what state the project is in, identify any contradictions with your previous suggestion, and only then propose the next change.
