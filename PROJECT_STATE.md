@@ -856,3 +856,35 @@ If conversation history conflicts with the repository or this file, the reposito
 * Added tests verifying table creation, foreign-key integrity, seeded row counts, and reseeding without duplication.
 * Added `data/*.db` to `.gitignore` so generated databases are not committed.
 * Current next step: build deterministic retrieval functions such as `get_customer`, `get_order`, `track_shipment`, and `check_inventory`.
+
+## 02-09-2026
+
+* Added deterministic retrieval functions over SQLite:
+
+  * `get_customer`
+  * `get_product`
+  * `get_order`
+  * `track_shipment`
+  * `check_inventory`
+* Added retrieval tests using fresh seeded temporary databases.
+* Fixed a brittle shipment test by comparing retrieval results against generated seed-42 ground truth instead of hard-coded shipment IDs.
+* Added structured agent-facing read tools with consistent `ToolResponse` objects.
+* Added explicit tool error codes including:
+
+  * `CUSTOMER_NOT_FOUND`
+  * `ORDER_NOT_FOUND`
+  * `SHIPMENT_NOT_FOUND`
+  * `PRODUCT_NOT_FOUND`
+* Added calculated usable inventory and replacement availability to inventory tool responses.
+* Added JSON-serializable tool response tests.
+* Added a provider-neutral Tool Registry containing:
+
+  * `get_customer`
+  * `get_order`
+  * `track_shipment`
+  * `check_inventory`
+* Added Pydantic argument schemas for every registered tool.
+* Added generic `execute_tool()` validation and execution gateway.
+* Added schema export for future LLM function/tool calling.
+* Added protection against unknown tools, malformed arguments, and unexpected extra arguments.
+* Current next step: build the model abstraction and first minimal LLM agent loop.
