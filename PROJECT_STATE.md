@@ -909,3 +909,108 @@ If conversation history conflicts with the repository or this file, the reposito
   - No unsupported claims: 25%
 - Test suite: 79 passing.
 - Current next step: measure consistency across repeated runs of the same benchmark cases.
+
+### Shipping stability checkpoint (26-10-2026)
+
+- Added `experiments/run_shipping_stability.py`: five independent runs per status,
+  using seed 42, the unchanged baseline task, fresh Ollama clients and runners,
+  and deterministic run IDs and filenames under `shipping_stability_v1`.
+- Added exact sequence/count modal consistency, per-case and overall completion
+  rates, automatic reliability metrics, and run-specific external manual reviews.
+- Added `experiments/summarize_shipping_stability.py` and usage/metric definitions
+  in `experiments/SHIPPING_STABILITY_V1.md`.
+- Validation: 88 tests passing; includes a ScriptedModel experiment and rerun test.
+- Live 20-run Ollama experiment has not been executed at this checkpoint.
+- Next: run `uv run python experiments/run_shipping_stability.py`, inspect traces,
+  label individual runs in `experiments/reviews/shipping_stability_v1.json`, then
+  run `uv run python experiments/summarize_shipping_stability.py`.
+
+### Benchmark V1 checkpoint (26-10-2026)
+
+- Added 20 deterministic seed-42 cases: four each for shipment, refund, damaged
+  product, incorrect invoice, and replacement. Explicit per-case fixtures run in
+  private databases; the general generator and historical results are unchanged.
+- Added authoritative refund/damage/invoice/replacement policies, invoice and
+  product agent tools, policy retrieval, and structured damage verification.
+- Added a shared evidence scorer, reliable-run rates, family/failure reporting,
+  a unified experiment runner, and external reviews keyed by run ID.
+- Existing shipping stability results compute to 55% reliable overall: lost 100%,
+  delayed 0%, in transit 100%, delivered 20%; mean sequence consistency is 95%.
+- See `benchmark/BENCHMARK_V1.md` for cases, policies, metrics, and taxonomy.
+- Validation: 149 tests passing, Ruff checks passing. No live V1 benchmark run.
+- Next: `uv run python experiments/run_benchmark_v1.py`, review traces, then
+  `uv run python experiments/summarize_benchmark_v1.py`. This starts 20 agent
+  runs with up to ten model calls each, using the expanded tool registry.
+
+### Failure diagnostics and Security V1 checkpoint (26-10-2026)
+
+- Added failed-case tool/evidence diagnostics and per-family missing-tool counts.
+  Historical Benchmark V1 reports retain 25% reliable runs and use each trace's
+  saved requirements; generated result files are unchanged.
+- QA corrected redundant evidence requirements after decisive policy gates in
+  four future cases: S02_not_delivered, S03_unverified_damage,
+  S03_ineligible_product, and S05_ineligible_product. Tasks, IDs, fixture values,
+  and all ground-truth labels match the saved historical cases.
+- Added 16 isolated adversarial cases across invented authority, tool avoidance,
+  false facts, unavailable actions, malformed identifiers, and data injection.
+  The tool registry and system prompt are unchanged; no mutation tools were added.
+- Added security scoring/reporting, deterministic result IDs, full traces,
+  safe-rejection metrics, and external human security reviews. See
+  `benchmark/SECURITY_V1.md` and the Benchmark V1 QA documentation.
+- Validation: 205 tests passing; Ruff checks passing. No live security runs.
+- Next: `uv run python experiments/summarize_benchmark_v1.py`, then optionally
+  `uv run python experiments/run_security_v1.py` (16 agent runs, at most 160 model
+  calls), followed by `uv run python experiments/summarize_security_v1.py`.
+
+### Engineering and portfolio polish checkpoint (26-10-2026)
+
+- Inspected saved malformed-ID traces: order lookup was never attempted; product
+  ID was substituted. Exact parameterized lookups already fail safely. Added
+  diagnostic outcomes without changing validation, retrieval, or success criteria;
+  Security V2 is not needed. Historical Security V1 is 43.8% reliable/security pass.
+- Added safe model-error categories and perf_counter runtime measurements for
+  total runs, individual model calls (including failures), and tool calls.
+  Old traces remain compatible and unmeasured; local cost is not_applicable/local.
+- Added packaged `arl` commands for benchmark, security, stability, summary,
+  world-summary, and seed. Compatibility scripts share the same runners.
+- New runs use protected model-specific namespaces: benchmark_v1_qa2,
+  security_v1_instrumented, shipping_stability_v1_instrumented. Existing result
+  JSON cannot be overwritten; new metadata fingerprints case definitions.
+- Consolidated reports preserve historical/current distinctions, manual review
+  status, security/stability findings, and runtime coverage. The saved pre-QA
+  Benchmark V1 remains 25% reliable and requires a corrected-requirement rerun.
+- Rewrote README with a Mermaid architecture diagram and versioned results;
+  added reproduction, malformed-ID diagnosis, and portfolio-summary documents.
+- Validation: 218 tests passed; Ruff checks passed; no tracked database files or
+  common credential/private-key patterns found in inspected project files.
+- No live runs, commits, or pushes. Next: run `uv run arl benchmark`; optionally
+  run instrumented stability/security for timings, then `uv run arl summary`.
+  Review new traces, external labels, and documentation before final Git commit.
+
+### Documentation results refresh: current Benchmark V1 QA2 (26-10-2026)
+
+- Verified saved QA2 JSON and consolidated `arl summary`: qwen3:4b-instruct,
+  20/20 cases, complete dataset, current definition fingerprints matching.
+- Current QA2: completion 100%, tool selection 30%, argument accuracy 100%,
+  evidence completeness 30%, reliable runs 30%; average turns 2.35 and tool
+  calls 2.50. Zero tool errors; unexpected get_product once and check_inventory
+  once. All 20 manual semantic reviews remain pending.
+- QA2 runtime averages: approximately 21.90 s/run, 9.32 s/model call, and
+  0.00088 s/tool call. Measured model-call time dominates tool execution here,
+  but includes provider/runtime overhead rather than isolated inference compute.
+  Local Ollama cost is not_applicable/local as hosted API spend.
+- Historical pre-QA Benchmark V1 remains 20 cases: completion 100%, tool selection
+  25%, argument accuracy 100%, evidence completeness/reliable runs 25%. Requirement
+  revisions differ; the change to 30% is not evidence of model improvement.
+- Existing Security V1 remains 16 cases: completion 100%, evidence completeness
+  and reliable/security pass 43.8%, zero unknown/prohibited attempts and zero
+  successful unavailable actions; manual semantic review pending.
+- Historical shipping stability remains 55% reliable with 95% mean tool-sequence
+  consistency: high behavioral consistency did not imply reliability. Historical
+  shipping baseline manual rates remain conclusion accuracy 100%, internal
+  consistency 100%, unsupported-claim-free 25%.
+- Refreshed README, portfolio summary, benchmark results, and reproduction guidance.
+  Earlier checkpoint entries describe their state at that time; QA2 no longer
+  needs its first corrected-requirement run. Next priority: semantic review.
+- Documentation-only update; no code, tests, definitions, prompts, tools, or saved
+  results changed. No live experiments, commits, or pushes.

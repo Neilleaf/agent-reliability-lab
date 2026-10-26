@@ -11,7 +11,11 @@ from agent_reliability_lab.tools.models import (
 from agent_reliability_lab.tools.read_tools import (
     check_inventory_tool,
     get_customer_tool,
+    get_damage_report_tool,
+    get_invoice_tool,
     get_order_tool,
+    get_policy_tool,
+    get_product_tool,
     track_shipment_tool,
 )
 
@@ -47,6 +51,19 @@ class InventoryLookupArgs(BaseModel):
 ToolExecutor = Callable[[Engine, Any], ToolResponse]
 
 
+class PolicyLookupArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    policy_id: str = Field(
+        description="Policy ID: refund, damage, invoice, or replacement."
+    )
+
+
+class DamageReportLookupArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    order_id: str
+    product_id: str
+
+
 class ToolDefinition(BaseModel):
     """Description and execution metadata for an agent-facing tool."""
 
@@ -62,6 +79,30 @@ class ToolDefinition(BaseModel):
 
 
 TOOL_REGISTRY = {
+    "get_product": ToolDefinition(
+        name="get_product",
+        description="Retrieve product facts and replacement eligibility.",
+        argument_model=InventoryLookupArgs,
+        executor=get_product_tool,
+    ),
+    "get_invoice": ToolDefinition(
+        name="get_invoice",
+        description="Retrieve the stored invoice for an order, including payment status and monetary fields.",
+        argument_model=OrderLookupArgs,
+        executor=get_invoice_tool,
+    ),
+    "get_policy": ToolDefinition(
+        name="get_policy",
+        description="Retrieve authoritative refund, damage, invoice, or replacement policy and the assessment date.",
+        argument_model=PolicyLookupArgs,
+        executor=get_policy_tool,
+    ),
+    "get_damage_report": ToolDefinition(
+        name="get_damage_report",
+        description="Retrieve verified/unverified damage evidence for an exact order and product.",
+        argument_model=DamageReportLookupArgs,
+        executor=get_damage_report_tool,
+    ),
     "get_customer": ToolDefinition(
         name="get_customer",
         description=("Retrieve a Northstar customer using an exact customer ID."),

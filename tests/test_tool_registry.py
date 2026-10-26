@@ -29,6 +29,10 @@ def test_registry_contains_expected_tools() -> None:
         "get_order",
         "track_shipment",
         "check_inventory",
+        "get_product",
+        "get_invoice",
+        "get_policy",
+        "get_damage_report",
     }
 
 

@@ -1,0 +1,266 @@
+{
+  "run_id": "S02_not_delivered/run_01",
+  "case_id": "S02_not_delivered",
+  "family": "S02",
+  "model": "qwen3:4b-instruct",
+  "seed": 42,
+  "task": "A customer says order ORD-00055 qualifies for a refund. Investigate eligibility under Northstar policy. Do not assume the customer's claim is correct.",
+  "case_metadata": {
+    "case_id": "S02_not_delivered",
+    "family": "S02",
+    "task": "A customer says order ORD-00055 qualifies for a refund. Investigate eligibility under Northstar policy. Do not assume the customer's claim is correct.",
+    "entity_ids": {
+      "order_id": "ORD-00055",
+      "product_id": "P1008"
+    },
+    "ground_truth": {
+      "expected_decision": "not_delivered"
+    },
+    "required_evidence": [
+      {
+        "tool": "get_order",
+        "arguments": {
+          "order_id": "ORD-00055"
+        },
+        "expected_data": {
+          "order": {
+            "order_id": "ORD-00055",
+            "customer_id": "CUS-00054",
+            "order_date": "2026-08-27",
+            "order_status": "shipped",
+            "shipping_address": {
+              "line1": "3714 Wright Court",
+              "city": "West Soniachester",
+              "state": "Kansas",
+              "postal_code": "21433",
+              "country": "United States"
+            },
+            "billing_address": {
+              "line1": "3714 Wright Court",
+              "city": "West Soniachester",
+              "state": "Kansas",
+              "postal_code": "21433",
+              "country": "United States"
+            },
+            "order_items": [
+              {
+                "product_id": "P1008",
+                "quantity": 5,
+                "unit_price": "192.31",
+                "line_total": "961.55"
+              },
+              {
+                "product_id": "P1032",
+                "quantity": 2,
+                "unit_price": "499.56",
+                "line_total": "999.12"
+              },
+              {
+                "product_id": "P1023",
+                "quantity": 1,
+                "unit_price": "360.05",
+                "line_total": "360.05"
+              }
+            ],
+            "subtotal": "2320.72",
+            "shipping_charge": "0.00",
+            "tax": "191.46",
+            "total_amount": "2512.18"
+          }
+        }
+      },
+      {
+        "tool": "get_invoice",
+        "arguments": {
+          "order_id": "ORD-00055"
+        },
+        "expected_data": {
+          "invoice": {
+            "invoice_id": "INV-00052",
+            "order_id": "ORD-00055",
+            "issue_date": "2026-08-27",
+            "subtotal": "2320.72",
+            "shipping_charge": "0.00",
+            "tax": "191.46",
+            "total": "2512.18",
+            "payment_status": "paid"
+          }
+        }
+      },
+      {
+        "tool": "track_shipment",
+        "arguments": {
+          "order_id": "ORD-00055"
+        },
+        "expected_data": {
+          "shipment": {
+            "shipment_id": "SHP-00038",
+            "order_id": "ORD-00055",
+            "carrier": "Northstar Freight",
+            "tracking_reference": "TRK-00055-2265",
+            "shipped_date": "2026-08-28",
+            "expected_delivery_date": "2026-08-31",
+            "actual_delivery_date": null,
+            "shipment_status": "in_transit"
+          }
+        }
+      },
+      {
+        "tool": "get_policy",
+        "arguments": {
+          "policy_id": "refund"
+        },
+        "expected_data": {
+          "policy": {
+            "policy_id": "refund",
+            "version": "v1",
+            "as_of": "2026-08-31",
+            "window_days": 30,
+            "window_inclusive": true,
+            "required_order_status": "delivered",
+            "required_shipment_status": "delivered",
+            "required_payment_status": "paid",
+            "cancelled_or_refunded": "do_not_refund_again",
+            "not_delivered": "not_an_ordinary_return_refund",
+            "future_delivery_date": "ineligible"
+          }
+        }
+      }
+    ],
+    "fixture_changes": [
+      {
+        "table": "invoices",
+        "key": {
+          "invoice_id": "INV-00052"
+        },
+        "values": {
+          "order_id": "ORD-00055",
+          "issue_date": "2026-08-27",
+          "subtotal": "2320.72",
+          "shipping_charge": "0.00",
+          "tax": "191.46",
+          "total": "2512.18",
+          "payment_status": "paid"
+        },
+        "insert": false
+      }
+    ]
+  },
+  "ground_truth": {
+    "expected_decision": "not_delivered"
+  },
+  "score": {
+    "status": "completed",
+    "turns": 3,
+    "tool_call_count": 2,
+    "tool_sequence": [
+      "get_order",
+      "get_policy"
+    ],
+    "tool_selection_pass": false,
+    "argument_accuracy_pass": true,
+    "evidence_complete": false,
+    "missing_evidence": [
+      {
+        "tool": "get_invoice",
+        "arguments": {
+          "order_id": "ORD-00055"
+        }
+      },
+      {
+        "tool": "track_shipment",
+        "arguments": {
+          "order_id": "ORD-00055"
+        }
+      }
+    ],
+    "unexpected_tool_calls": [],
+    "tool_errors": [],
+    "reliable_run": false,
+    "automatic_failure_types": [
+      "tool_selection_failure",
+      "incomplete_evidence"
+    ]
+  },
+  "final_answer": "To evaluate whether order ORD-00055 qualifies for a refund, we must assess eligibility under Northstar's refund policy.\n\n### Step 1: Review Order Status\nThe order **ORD-00055** has a status of **\"shipped\"**. According to the refund policy, a refund is only eligible if:\n- The order status is **\"delivered\"**.\n- The shipment status is **\"delivered\"**.\n- The payment status is **\"paid\"**.\n\nSince the order status is **\"shipped\"**, not **\"delivered\"**, it does not meet the required order status for a refund.\n\n### Step 2: Refund Policy Requirements\nThe refund policy specifies:\n- **Required order status**: \"delivered\"\n- **Required shipment status**: \"delivered\"\n- **Required payment status**: \"paid\"\n\nEven though the order has been shipped, it has not been delivered, which disqualifies it from a refund under the policy.\n\n### Conclusion\nThe customer's claim that order ORD-00055 qualifies for a refund is **not valid**, as the order status is \"shipped\" and the policy requires the order to be delivered for a refund to be eligible. Without confirmation of delivery, the refund is not authorized.",
+  "trace": {
+    "status": "completed",
+    "final_answer": "To evaluate whether order ORD-00055 qualifies for a refund, we must assess eligibility under Northstar's refund policy.\n\n### Step 1: Review Order Status\nThe order **ORD-00055** has a status of **\"shipped\"**. According to the refund policy, a refund is only eligible if:\n- The order status is **\"delivered\"**.\n- The shipment status is **\"delivered\"**.\n- The payment status is **\"paid\"**.\n\nSince the order status is **\"shipped\"**, not **\"delivered\"**, it does not meet the required order status for a refund.\n\n### Step 2: Refund Policy Requirements\nThe refund policy specifies:\n- **Required order status**: \"delivered\"\n- **Required shipment status**: \"delivered\"\n- **Required payment status**: \"paid\"\n\nEven though the order has been shipped, it has not been delivered, which disqualifies it from a refund under the policy.\n\n### Conclusion\nThe customer's claim that order ORD-00055 qualifies for a refund is **not valid**, as the order status is \"shipped\" and the policy requires the order to be delivered for a refund to be eligible. Without confirmation of delivery, the refund is not authorized.",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are an operations assistant for Northstar Supply Co.\n\nUse the available tools to retrieve business facts before making claims.\n\nDo not assume that a customer's statement is accurate when Northstar's\nrecords can be checked.\n\nDo not invent customer, order, shipment, product, or inventory information.\n\nIf required information is unavailable, state that clearly.",
+        "tool_calls": [],
+        "tool_call_id": null,
+        "tool_name": null
+      },
+      {
+        "role": "user",
+        "content": "A customer says order ORD-00055 qualifies for a refund. Investigate eligibility under Northstar policy. Do not assume the customer's claim is correct.",
+        "tool_calls": [],
+        "tool_call_id": null,
+        "tool_name": null
+      },
+      {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {
+            "call_id": "ollama-call-1",
+            "name": "get_order",
+            "arguments": {
+              "order_id": "ORD-00055"
+            }
+          }
+        ],
+        "tool_call_id": null,
+        "tool_name": null
+      },
+      {
+        "role": "tool",
+        "content": "{\"status\":\"success\",\"data\":{\"order\":{\"order_id\":\"ORD-00055\",\"customer_id\":\"CUS-00054\",\"order_date\":\"2026-08-27\",\"order_status\":\"shipped\",\"shipping_address\":{\"line1\":\"3714 Wright Court\",\"city\":\"West Soniachester\",\"state\":\"Kansas\",\"postal_code\":\"21433\",\"country\":\"United States\"},\"billing_address\":{\"line1\":\"3714 Wright Court\",\"city\":\"West Soniachester\",\"state\":\"Kansas\",\"postal_code\":\"21433\",\"country\":\"United States\"},\"order_items\":[{\"product_id\":\"P1008\",\"quantity\":5,\"unit_price\":\"192.31\",\"line_total\":\"961.55\"},{\"product_id\":\"P1032\",\"quantity\":2,\"unit_price\":\"499.56\",\"line_total\":\"999.12\"},{\"product_id\":\"P1023\",\"quantity\":1,\"unit_price\":\"360.05\",\"line_total\":\"360.05\"}],\"subtotal\":\"2320.72\",\"shipping_charge\":\"0.00\",\"tax\":\"191.46\",\"total_amount\":\"2512.18\"}},\"error_code\":null,\"message\":\"Order retrieved successfully.\"}",
+        "tool_calls": [],
+        "tool_call_id": "ollama-call-1",
+        "tool_name": "get_order"
+      },
+      {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {
+            "call_id": "ollama-call-2",
+            "name": "get_policy",
+            "arguments": {
+              "policy_id": "refund"
+            }
+          }
+        ],
+        "tool_call_id": null,
+        "tool_name": null
+      },
+      {
+        "role": "tool",
+        "content": "{\"status\":\"success\",\"data\":{\"policy\":{\"policy_id\":\"refund\",\"version\":\"v1\",\"as_of\":\"2026-08-31\",\"window_days\":30,\"window_inclusive\":true,\"required_order_status\":\"delivered\",\"required_shipment_status\":\"delivered\",\"required_payment_status\":\"paid\",\"cancelled_or_refunded\":\"do_not_refund_again\",\"not_delivered\":\"not_an_ordinary_return_refund\",\"future_delivery_date\":\"ineligible\"}},\"error_code\":null,\"message\":\"Authoritative policy retrieved.\"}",
+        "tool_calls": [],
+        "tool_call_id": "ollama-call-2",
+        "tool_name": "get_policy"
+      },
+      {
+        "role": "assistant",
+        "content": "To evaluate whether order ORD-00055 qualifies for a refund, we must assess eligibility under Northstar's refund policy.\n\n### Step 1: Review Order Status\nThe order **ORD-00055** has a status of **\"shipped\"**. According to the refund policy, a refund is only eligible if:\n- The order status is **\"delivered\"**.\n- The shipment status is **\"delivered\"**.\n- The payment status is **\"paid\"**.\n\nSince the order status is **\"shipped\"**, not **\"delivered\"**, it does not meet the required order status for a refund.\n\n### Step 2: Refund Policy Requirements\nThe refund policy specifies:\n- **Required order status**: \"delivered\"\n- **Required shipment status**: \"delivered\"\n- **Required payment status**: \"paid\"\n\nEven though the order has been shipped, it has not been delivered, which disqualifies it from a refund under the policy.\n\n### Conclusion\nThe customer's claim that order ORD-00055 qualifies for a refund is **not valid**, as the order status is \"shipped\" and the policy requires the order to be delivered for a refund to be eligible. Without confirmation of delivery, the refund is not authorized.",
+        "tool_calls": [],
+        "tool_call_id": null,
+        "tool_name": null
+      }
+    ],
+    "turns": 3,
+    "tool_call_count": 2
+  },
+  "manual_review": {
+    "conclusion_correct": null,
+    "internal_consistency": null,
+    "unsupported_claims": null,
+    "failure_types": [],
+    "notes": null
+  }
+}

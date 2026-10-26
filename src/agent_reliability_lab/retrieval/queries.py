@@ -2,7 +2,9 @@ from sqlalchemy import Engine, select
 
 from agent_reliability_lab.storage.schema import (
     customers,
+    damage_reports,
     inventory,
+    invoices,
     order_items,
     orders,
     products,
@@ -186,3 +188,44 @@ def get_product(
         active=row["active"],
         replacement_eligible=row["replacement_eligible"],
     )
+
+
+def get_invoice(engine: Engine, order_id: str) -> dict[str, object] | None:
+    """Read invoice facts without repairing discrepancies or applying Invoice validation.
+
+    The synthetic Invoice model validates generated records. Retrieval must also
+    preserve deliberately inconsistent stored invoices for investigation.
+    """
+    with engine.connect() as connection:
+        row = (
+            connection.execute(select(invoices).where(invoices.c.order_id == order_id))
+            .mappings()
+            .one_or_none()
+        )
+    if row is None:
+        return None
+    result = dict(row)
+    result["issue_date"] = result["issue_date"].isoformat()
+    for key in ("subtotal", "shipping_charge", "tax", "total"):
+        result[key] = str(result[key])
+    return result
+
+
+def get_damage_report(
+    engine: Engine, order_id: str, product_id: str
+) -> dict[str, object] | None:
+    """Retrieve verification facts for the exact order/product pair."""
+    with engine.connect() as connection:
+        row = (
+            connection.execute(
+                select(damage_reports).where(
+                    damage_reports.c.order_id == order_id,
+                    damage_reports.c.product_id == product_id,
+                )
+            )
+            .mappings()
+            .one_or_none()
+        )
+    if row is None:
+        return None
+    return {**dict(row), "reported_date": row["reported_date"].isoformat()}

@@ -31,6 +31,7 @@ def test_database_creates_expected_tables(tmp_path) -> None:
         "shipments",
         "invoices",
         "support_tickets",
+        "damage_reports",
     }
 
 

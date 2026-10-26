@@ -187,3 +187,13 @@ support_tickets = Table(
     Column("description", Text, nullable=False),
     Column("created_date", Date, nullable=False),
 )
+
+
+damage_reports = Table(
+    "damage_reports",
+    metadata,
+    Column("order_id", String, ForeignKey("orders.order_id"), primary_key=True),
+    Column("product_id", String, ForeignKey("products.product_id"), primary_key=True),
+    Column("verified", Boolean, nullable=False),
+    Column("reported_date", Date, nullable=False),
+)

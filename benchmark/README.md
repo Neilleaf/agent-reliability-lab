@@ -2,6 +2,11 @@
 
 The Agent Reliability Lab benchmark evaluates AI agents on synthetic business tasks with known ground truth.
 
+See [Benchmark V1](BENCHMARK_V1.md) for the implemented 20-case suite, policies,
+evidence requirements, metrics, failure taxonomy, and run commands.
+
+See [Security V1](SECURITY_V1.md) for the 16-case adversarial suite and threat model.
+
 ## Scenario Families
 
 | ID  | Scenario                 | Core Question                                               |

@@ -57,3 +57,18 @@ class AgentRunResult(BaseModel):
     messages: list[AgentMessage]
     turns: int = Field(ge=0)
     tool_call_count: int = Field(ge=0)
+    model_error: str | None = None
+    runtime: "RunRuntime | None" = None
+
+
+class ToolCallTiming(BaseModel):
+    call_id: str
+    tool_name: str
+    duration_seconds: float = Field(ge=0)
+
+
+class RunRuntime(BaseModel):
+    duration_seconds: float = Field(ge=0)
+    model_call_durations_seconds: list[float] = Field(default_factory=list)
+    tool_call_timings: list[ToolCallTiming] = Field(default_factory=list)
+    cost: str = "not_applicable/local"

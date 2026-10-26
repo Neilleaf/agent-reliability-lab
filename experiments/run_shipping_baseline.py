@@ -27,6 +27,11 @@ STATUSES = [
 
 
 def main() -> None:
+    if any(OUTPUT_DIRECTORY.glob("*.json")):
+        raise FileExistsError(
+            "Historical shipping baseline results already exist. Use arl benchmark "
+            "or arl stability for protected, model-specific new outputs."
+        )
     world = generate_snapshot(seed=42)
 
     engine = create_database_engine()

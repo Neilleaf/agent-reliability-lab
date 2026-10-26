@@ -1,14 +1,20 @@
+from collections.abc import Callable
+from time import perf_counter
+
 from sqlalchemy import Engine
 
 from agent_reliability_lab.agent.model import (
     ModelClient,
     ModelClientError,
+    safe_model_error,
 )
 from agent_reliability_lab.agent.models import (
     AgentMessage,
     AgentRunResult,
     AgentRunStatus,
     MessageRole,
+    RunRuntime,
+    ToolCallTiming,
 )
 from agent_reliability_lab.tools.registry import (
     execute_tool,
@@ -39,6 +45,7 @@ class AgentRunner:
         model: ModelClient,
         max_turns: int = 10,
         system_prompt: str = DEFAULT_SYSTEM_PROMPT,
+        clock: Callable[[], float] = perf_counter,
     ) -> None:
         if max_turns < 1:
             raise ValueError("max_turns must be at least 1")
@@ -47,11 +54,31 @@ class AgentRunner:
         self._model = model
         self._max_turns = max_turns
         self._system_prompt = system_prompt
+        self._clock = clock
 
     def run(
         self,
         task: str,
     ) -> AgentRunResult:
+        started = self._clock()
+        model_durations = []
+        tool_timings = []
+
+        def finish(status, answer, turn, error=None):
+            return AgentRunResult(
+                status=status,
+                final_answer=answer,
+                messages=messages,
+                turns=turn,
+                tool_call_count=tool_call_count,
+                model_error=error,
+                runtime=RunRuntime(
+                    duration_seconds=self._clock() - started,
+                    model_call_durations_seconds=model_durations,
+                    tool_call_timings=tool_timings,
+                ),
+            )
+
         messages = [
             AgentMessage(
                 role=MessageRole.SYSTEM,
@@ -67,19 +94,19 @@ class AgentRunner:
         tool_call_count = 0
 
         for turn in range(1, self._max_turns + 1):
+            model_started = self._clock()
             try:
                 response = self._model.generate(
                     messages,
                     tool_schemas,
                 )
-            except ModelClientError:
-                return AgentRunResult(
-                    status=AgentRunStatus.MODEL_ERROR,
-                    final_answer=None,
-                    messages=messages,
-                    turns=turn,
-                    tool_call_count=tool_call_count,
+            except ModelClientError as exc:
+                model_durations.append(self._clock() - model_started)
+                return finish(
+                    AgentRunStatus.MODEL_ERROR, None, turn, safe_model_error(exc)
                 )
+
+            model_durations.append(self._clock() - model_started)
 
             messages.append(
                 AgentMessage(
@@ -93,10 +120,18 @@ class AgentRunner:
                 for tool_call in response.tool_calls:
                     tool_call_count += 1
 
+                    tool_started = self._clock()
                     tool_result = execute_tool(
                         self._engine,
                         tool_call.name,
                         tool_call.arguments,
+                    )
+                    tool_timings.append(
+                        ToolCallTiming(
+                            call_id=tool_call.call_id,
+                            tool_name=tool_call.name,
+                            duration_seconds=self._clock() - tool_started,
+                        )
                     )
 
                     messages.append(
@@ -111,18 +146,6 @@ class AgentRunner:
                 continue
 
             if response.content:
-                return AgentRunResult(
-                    status=AgentRunStatus.COMPLETED,
-                    final_answer=response.content,
-                    messages=messages,
-                    turns=turn,
-                    tool_call_count=tool_call_count,
-                )
+                return finish(AgentRunStatus.COMPLETED, response.content, turn)
 
-        return AgentRunResult(
-            status=AgentRunStatus.MAX_TURNS_REACHED,
-            final_answer=None,
-            messages=messages,
-            turns=self._max_turns,
-            tool_call_count=tool_call_count,
-        )
+        return finish(AgentRunStatus.MAX_TURNS_REACHED, None, self._max_turns)

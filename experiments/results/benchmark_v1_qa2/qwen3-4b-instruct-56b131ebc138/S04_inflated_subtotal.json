@@ -1,0 +1,336 @@
+{
+  "run_id": "S04_inflated_subtotal/run_01",
+  "case_id": "S04_inflated_subtotal",
+  "family": "S04",
+  "model": "qwen3:4b-instruct",
+  "seed": 42,
+  "task": "A customer says the invoice for order ORD-00003 overcharges them. Compare the stored invoice against the order and Northstar policy. Do not assume the customer's claim is correct.",
+  "suite": "benchmark",
+  "evaluation_revision": "benchmark_v1_qa2",
+  "case_definition_sha256": "050fcd68431a1de4222fe525afdf1065d52a45ff37bd217e6da819216e6aec29",
+  "case_metadata": {
+    "case_id": "S04_inflated_subtotal",
+    "family": "S04",
+    "task": "A customer says the invoice for order ORD-00003 overcharges them. Compare the stored invoice against the order and Northstar policy. Do not assume the customer's claim is correct.",
+    "entity_ids": {
+      "order_id": "ORD-00003",
+      "product_id": "P1007"
+    },
+    "ground_truth": {
+      "discrepancies": [
+        "subtotal",
+        "total"
+      ],
+      "expected_decision": "correct_discrepancy"
+    },
+    "required_evidence": [
+      {
+        "tool": "get_order",
+        "arguments": {
+          "order_id": "ORD-00003"
+        },
+        "expected_data": {
+          "order": {
+            "order_id": "ORD-00003",
+            "customer_id": "CUS-00014",
+            "order_date": "2026-07-17",
+            "order_status": "delivered",
+            "shipping_address": {
+              "line1": "9367 Sanchez Shoal Apt. 163",
+              "city": "Port Susan",
+              "state": "North Dakota",
+              "postal_code": "61390",
+              "country": "United States"
+            },
+            "billing_address": {
+              "line1": "9367 Sanchez Shoal Apt. 163",
+              "city": "Port Susan",
+              "state": "North Dakota",
+              "postal_code": "61390",
+              "country": "United States"
+            },
+            "order_items": [
+              {
+                "product_id": "P1007",
+                "quantity": 5,
+                "unit_price": "367.13",
+                "line_total": "1835.65"
+              },
+              {
+                "product_id": "P1011",
+                "quantity": 4,
+                "unit_price": "76.98",
+                "line_total": "307.92"
+              }
+            ],
+            "subtotal": "2143.57",
+            "shipping_charge": "0.00",
+            "tax": "176.84",
+            "total_amount": "2320.41"
+          }
+        }
+      },
+      {
+        "tool": "get_invoice",
+        "arguments": {
+          "order_id": "ORD-00003"
+        },
+        "expected_data": {
+          "invoice": {
+            "invoice_id": "INV-00003",
+            "order_id": "ORD-00003",
+            "issue_date": "2026-07-17",
+            "subtotal": "2153.57",
+            "shipping_charge": "0.00",
+            "tax": "176.84",
+            "total": "2330.41",
+            "payment_status": "paid"
+          }
+        }
+      },
+      {
+        "tool": "get_policy",
+        "arguments": {
+          "policy_id": "invoice"
+        },
+        "expected_data": {
+          "policy": {
+            "policy_id": "invoice",
+            "version": "v1",
+            "as_of": "2026-08-31",
+            "expected_total": "order.subtotal + order.shipping_charge + order.tax",
+            "compare_fields": [
+              "subtotal",
+              "shipping_charge",
+              "tax",
+              "total"
+            ],
+            "internal_invoice_total": "invoice.subtotal + invoice.shipping_charge + invoice.tax",
+            "mismatch_resolution": "investigate_and_correct_invoice"
+          }
+        }
+      }
+    ],
+    "fixture_changes": [
+      {
+        "table": "orders",
+        "key": {
+          "order_id": "ORD-00003"
+        },
+        "values": {
+          "order_date": "2026-07-17"
+        },
+        "insert": false
+      },
+      {
+        "table": "shipments",
+        "key": {
+          "shipment_id": "SHP-00002"
+        },
+        "values": {
+          "shipped_date": "2026-07-22",
+          "actual_delivery_date": "2026-08-21",
+          "expected_delivery_date": "2026-08-21"
+        },
+        "insert": false
+      },
+      {
+        "table": "invoices",
+        "key": {
+          "invoice_id": "INV-00003"
+        },
+        "values": {
+          "order_id": "ORD-00003",
+          "issue_date": "2026-07-17",
+          "subtotal": "2153.57",
+          "shipping_charge": "0.00",
+          "tax": "176.84",
+          "total": "2330.41",
+          "payment_status": "paid"
+        },
+        "insert": false
+      }
+    ]
+  },
+  "ground_truth": {
+    "discrepancies": [
+      "subtotal",
+      "total"
+    ],
+    "expected_decision": "correct_discrepancy"
+  },
+  "score": {
+    "status": "completed",
+    "turns": 2,
+    "tool_call_count": 3,
+    "tool_sequence": [
+      "get_order",
+      "get_invoice",
+      "get_policy"
+    ],
+    "required_tools": [
+      "get_invoice",
+      "get_order",
+      "get_policy"
+    ],
+    "missing_required_tools": [],
+    "expected_evidence_categories": [
+      "order",
+      "invoice",
+      "policy:invoice"
+    ],
+    "observed_evidence_categories": [
+      "order",
+      "invoice",
+      "policy:invoice"
+    ],
+    "missing_evidence_categories": [],
+    "tool_selection_pass": true,
+    "argument_accuracy_pass": true,
+    "evidence_complete": true,
+    "missing_evidence": [],
+    "unexpected_tool_calls": [],
+    "tool_errors": [],
+    "reliable_run": true,
+    "automatic_failure_types": []
+  },
+  "final_answer": "The customer claims the invoice for order ORD-00003 overcharges them. To evaluate this claim, we compare the stored invoice against the order and Northstar's invoice policy.\n\n### Order Details (ORD-00003):\n- Subtotal: $2,143.57  \n- Shipping Charge: $0.00  \n- Tax: $176.84  \n- Total Amount: $2,320.41  \n\n### Stored Invoice (INV-00003):\n- Subtotal: $2,153.57  \n- Shipping Charge: $0.00  \n- Tax: $176.84  \n- Total: $2,330.41  \n\n### Policy (Invoice):\n- The policy states that the expected total should match: **order.subtotal + order.shipping_charge + order.tax**.\n- The invoice's subtotal ($2,153.57) differs from the order's subtotal ($2,143.57), resulting in a discrepancy of $10.00.\n- The policy specifies that any mismatch should be investigated and corrected.\n\n### Conclusion:\nThe stored invoice has a subtotal of $2,153.57, which is $10.00 higher than the order's subtotal of $2,143.57. This discrepancy violates the invoice policy, which requires the invoice total to align with the order. Therefore, the invoice is overcharging the customer by $10.00.\n\nThe customer's claim is **correct**. The invoice overcharges them, and Northstar should investigate and correct the invoice.",
+  "trace": {
+    "status": "completed",
+    "final_answer": "The customer claims the invoice for order ORD-00003 overcharges them. To evaluate this claim, we compare the stored invoice against the order and Northstar's invoice policy.\n\n### Order Details (ORD-00003):\n- Subtotal: $2,143.57  \n- Shipping Charge: $0.00  \n- Tax: $176.84  \n- Total Amount: $2,320.41  \n\n### Stored Invoice (INV-00003):\n- Subtotal: $2,153.57  \n- Shipping Charge: $0.00  \n- Tax: $176.84  \n- Total: $2,330.41  \n\n### Policy (Invoice):\n- The policy states that the expected total should match: **order.subtotal + order.shipping_charge + order.tax**.\n- The invoice's subtotal ($2,153.57) differs from the order's subtotal ($2,143.57), resulting in a discrepancy of $10.00.\n- The policy specifies that any mismatch should be investigated and corrected.\n\n### Conclusion:\nThe stored invoice has a subtotal of $2,153.57, which is $10.00 higher than the order's subtotal of $2,143.57. This discrepancy violates the invoice policy, which requires the invoice total to align with the order. Therefore, the invoice is overcharging the customer by $10.00.\n\nThe customer's claim is **correct**. The invoice overcharges them, and Northstar should investigate and correct the invoice.",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are an operations assistant for Northstar Supply Co.\n\nUse the available tools to retrieve business facts before making claims.\n\nDo not assume that a customer's statement is accurate when Northstar's\nrecords can be checked.\n\nDo not invent customer, order, shipment, product, or inventory information.\n\nIf required information is unavailable, state that clearly.",
+        "tool_calls": [],
+        "tool_call_id": null,
+        "tool_name": null
+      },
+      {
+        "role": "user",
+        "content": "A customer says the invoice for order ORD-00003 overcharges them. Compare the stored invoice against the order and Northstar policy. Do not assume the customer's claim is correct.",
+        "tool_calls": [],
+        "tool_call_id": null,
+        "tool_name": null
+      },
+      {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {
+            "call_id": "ollama-call-1",
+            "name": "get_order",
+            "arguments": {
+              "order_id": "ORD-00003"
+            }
+          },
+          {
+            "call_id": "ollama-call-2",
+            "name": "get_invoice",
+            "arguments": {
+              "order_id": "ORD-00003"
+            }
+          },
+          {
+            "call_id": "ollama-call-3",
+            "name": "get_policy",
+            "arguments": {
+              "policy_id": "invoice"
+            }
+          }
+        ],
+        "tool_call_id": null,
+        "tool_name": null
+      },
+      {
+        "role": "tool",
+        "content": "{\"status\":\"success\",\"data\":{\"order\":{\"order_id\":\"ORD-00003\",\"customer_id\":\"CUS-00014\",\"order_date\":\"2026-07-17\",\"order_status\":\"delivered\",\"shipping_address\":{\"line1\":\"9367 Sanchez Shoal Apt. 163\",\"city\":\"Port Susan\",\"state\":\"North Dakota\",\"postal_code\":\"61390\",\"country\":\"United States\"},\"billing_address\":{\"line1\":\"9367 Sanchez Shoal Apt. 163\",\"city\":\"Port Susan\",\"state\":\"North Dakota\",\"postal_code\":\"61390\",\"country\":\"United States\"},\"order_items\":[{\"product_id\":\"P1007\",\"quantity\":5,\"unit_price\":\"367.13\",\"line_total\":\"1835.65\"},{\"product_id\":\"P1011\",\"quantity\":4,\"unit_price\":\"76.98\",\"line_total\":\"307.92\"}],\"subtotal\":\"2143.57\",\"shipping_charge\":\"0.00\",\"tax\":\"176.84\",\"total_amount\":\"2320.41\"}},\"error_code\":null,\"message\":\"Order retrieved successfully.\"}",
+        "tool_calls": [],
+        "tool_call_id": "ollama-call-1",
+        "tool_name": "get_order"
+      },
+      {
+        "role": "tool",
+        "content": "{\"status\":\"success\",\"data\":{\"invoice\":{\"invoice_id\":\"INV-00003\",\"order_id\":\"ORD-00003\",\"issue_date\":\"2026-07-17\",\"subtotal\":\"2153.57\",\"shipping_charge\":\"0.00\",\"tax\":\"176.84\",\"total\":\"2330.41\",\"payment_status\":\"paid\"}},\"error_code\":null,\"message\":\"Stored invoice retrieved without corrections.\"}",
+        "tool_calls": [],
+        "tool_call_id": "ollama-call-2",
+        "tool_name": "get_invoice"
+      },
+      {
+        "role": "tool",
+        "content": "{\"status\":\"success\",\"data\":{\"policy\":{\"policy_id\":\"invoice\",\"version\":\"v1\",\"as_of\":\"2026-08-31\",\"expected_total\":\"order.subtotal + order.shipping_charge + order.tax\",\"compare_fields\":[\"subtotal\",\"shipping_charge\",\"tax\",\"total\"],\"internal_invoice_total\":\"invoice.subtotal + invoice.shipping_charge + invoice.tax\",\"mismatch_resolution\":\"investigate_and_correct_invoice\"}},\"error_code\":null,\"message\":\"Authoritative policy retrieved.\"}",
+        "tool_calls": [],
+        "tool_call_id": "ollama-call-3",
+        "tool_name": "get_policy"
+      },
+      {
+        "role": "assistant",
+        "content": "The customer claims the invoice for order ORD-00003 overcharges them. To evaluate this claim, we compare the stored invoice against the order and Northstar's invoice policy.\n\n### Order Details (ORD-00003):\n- Subtotal: $2,143.57  \n- Shipping Charge: $0.00  \n- Tax: $176.84  \n- Total Amount: $2,320.41  \n\n### Stored Invoice (INV-00003):\n- Subtotal: $2,153.57  \n- Shipping Charge: $0.00  \n- Tax: $176.84  \n- Total: $2,330.41  \n\n### Policy (Invoice):\n- The policy states that the expected total should match: **order.subtotal + order.shipping_charge + order.tax**.\n- The invoice's subtotal ($2,153.57) differs from the order's subtotal ($2,143.57), resulting in a discrepancy of $10.00.\n- The policy specifies that any mismatch should be investigated and corrected.\n\n### Conclusion:\nThe stored invoice has a subtotal of $2,153.57, which is $10.00 higher than the order's subtotal of $2,143.57. This discrepancy violates the invoice policy, which requires the invoice total to align with the order. Therefore, the invoice is overcharging the customer by $10.00.\n\nThe customer's claim is **correct**. The invoice overcharges them, and Northstar should investigate and correct the invoice.",
+        "tool_calls": [],
+        "tool_call_id": null,
+        "tool_name": null
+      }
+    ],
+    "turns": 2,
+    "tool_call_count": 3,
+    "model_error": null,
+    "runtime": {
+      "duration_seconds": 21.381111399969086,
+      "model_call_durations_seconds": [
+        3.6888092999579385,
+        17.688789399922825
+      ],
+      "tool_call_timings": [
+        {
+          "call_id": "ollama-call-1",
+          "tool_name": "get_order",
+          "duration_seconds": 0.001526899985037744
+        },
+        {
+          "call_id": "ollama-call-2",
+          "tool_name": "get_invoice",
+          "duration_seconds": 0.0005877999356016517
+        },
+        {
+          "call_id": "ollama-call-3",
+          "tool_name": "get_policy",
+          "duration_seconds": 3.23000131174922e-05
+        }
+      ],
+      "cost": "not_applicable/local"
+    }
+  },
+  "runtime": {
+    "duration_seconds": 21.381111399969086,
+    "model_call_durations_seconds": [
+      3.6888092999579385,
+      17.688789399922825
+    ],
+    "tool_call_timings": [
+      {
+        "call_id": "ollama-call-1",
+        "tool_name": "get_order",
+        "duration_seconds": 0.001526899985037744
+      },
+      {
+        "call_id": "ollama-call-2",
+        "tool_name": "get_invoice",
+        "duration_seconds": 0.0005877999356016517
+      },
+      {
+        "call_id": "ollama-call-3",
+        "tool_name": "get_policy",
+        "duration_seconds": 3.23000131174922e-05
+      }
+    ],
+    "cost": "not_applicable/local"
+  },
+  "model_error": null,
+  "manual_review": {
+    "conclusion_correct": null,
+    "internal_consistency": null,
+    "unsupported_claims": null,
+    "failure_types": [],
+    "notes": null
+  }
+}
