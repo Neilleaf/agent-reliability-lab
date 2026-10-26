@@ -1,0 +1,37 @@
+{
+  "ORD-00018": {
+    "conclusion_correct": true,
+    "internal_consistency": true,
+    "unsupported_claims": true,
+    "failure_types": [
+      "unsupported_inference",
+      "unsupported_recommendation"
+    ],
+    "notes": "The final conclusion correctly recognizes the shipment as lost. However, saying the package did not reach its destination is stronger than the retrieved status alone, and the claim/replacement process was not established by retrieved policy."
+  },
+  "ORD-00002": {
+    "conclusion_correct": true,
+    "internal_consistency": true,
+    "unsupported_claims": true,
+    "failure_types": [
+      "unsupported_operational_claim"
+    ],
+    "notes": "The delayed conclusion is correct. The statement that Northstar will update the delivery status is an operational promise not established by retrieved evidence."
+  },
+  "ORD-00055": {
+    "conclusion_correct": true,
+    "internal_consistency": true,
+    "unsupported_claims": false,
+    "failure_types": [],
+    "notes": "The answer correctly distinguishes an in-transit shipment from a lost shipment and stays materially consistent with the retrieved evidence."
+  },
+  "ORD-00003": {
+    "conclusion_correct": true,
+    "internal_consistency": true,
+    "unsupported_claims": true,
+    "failure_types": [
+      "unsupported_delivery_inference"
+    ],
+    "notes": "The delivered conclusion is correct, but the records only establish a delivered shipment status. They do not independently prove that the parcel was delivered to the customer at the stated address."
+  }
+}

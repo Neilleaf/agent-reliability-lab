@@ -1,4 +1,9 @@
-from agent_reliability_lab.synthetic.generator import generate_base_world
+from agent_reliability_lab.synthetic.generator import (
+    REFERENCE_DATE,
+    generate_base_world,
+    generate_snapshot,
+)
+from agent_reliability_lab.synthetic.models import ShipmentStatus
 
 
 def test_base_world_contains_expected_counts() -> None:
@@ -40,3 +45,36 @@ def test_reserved_inventory_never_exceeds_available_inventory() -> None:
 
     for record in world.inventory:
         assert record.quantity_reserved <= record.quantity_available
+
+
+def test_open_shipment_statuses_are_temporally_plausible() -> None:
+    world = generate_snapshot(seed=42)
+
+    for shipment in world.shipments:
+        if shipment.shipment_status == ShipmentStatus.IN_TRANSIT:
+            assert shipment.expected_delivery_date >= REFERENCE_DATE
+
+        if shipment.shipment_status in {
+            ShipmentStatus.DELAYED,
+            ShipmentStatus.LOST,
+            ShipmentStatus.RETURNED_TO_SENDER,
+        }:
+            assert shipment.expected_delivery_date < REFERENCE_DATE
+
+        if shipment.shipment_status != ShipmentStatus.DELIVERED:
+            assert shipment.actual_delivery_date is None
+
+
+def test_open_shipments_are_recent() -> None:
+    world = generate_snapshot(seed=42)
+
+    for shipment in world.shipments:
+        if shipment.shipment_status in {
+            ShipmentStatus.IN_TRANSIT,
+            ShipmentStatus.DELAYED,
+            ShipmentStatus.LOST,
+            ShipmentStatus.RETURNED_TO_SENDER,
+        }:
+            age_days = (REFERENCE_DATE - shipment.shipped_date).days
+
+            assert age_days <= 17

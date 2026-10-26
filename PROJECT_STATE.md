@@ -888,3 +888,24 @@ If conversation history conflicts with the repository or this file, the reposito
 * Added schema export for future LLM function/tool calling.
 * Added protection against unknown tools, malformed arguments, and unexpected extra arguments.
 * Current next step: build the model abstraction and first minimal LLM agent loop.
+
+## 26-10-2026
+
+- Added a provider-neutral agent architecture with model abstraction, message traces, tool calls, maximum-turn protection, and model-error handling.
+- Added a deterministic `ScriptedModel` for testing agent behavior without API calls.
+- Added a local Ollama adapter and successfully ran `qwen3:4b-instruct` against Northstar tools.
+- Completed the first unscripted agent experiments for lost, delayed, in-transit, and delivered shipments.
+- Identified reliability failures including evidence misinterpretation, self-contradiction, and unsupported claims despite correct tool use.
+- Improved synthetic shipment realism so shipment status is temporally consistent with expected delivery dates.
+- Added shipping evaluation metrics for tool selection, argument accuracy, evidence completeness, turns, and tool-call counts.
+- Added versioned experiment results and a separate manual-review layer so human labels are not overwritten by experiment reruns.
+- Added benchmark aggregation and reporting.
+- Shipping Baseline V1 results:
+  - Tool selection: 100%
+  - Argument accuracy: 100%
+  - Evidence completeness: 100%
+  - Conclusion accuracy: 100%
+  - Internal consistency: 100%
+  - No unsupported claims: 25%
+- Test suite: 79 passing.
+- Current next step: measure consistency across repeated runs of the same benchmark cases.

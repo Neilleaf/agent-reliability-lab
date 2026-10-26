@@ -296,16 +296,20 @@ def generate_orders(
             k=1,
         )[0]
 
+        earliest_order_date = start_date
         latest_order_date = REFERENCE_DATE
 
         if status == OrderStatus.DELIVERED:
             latest_order_date = REFERENCE_DATE - timedelta(days=4)
         elif status == OrderStatus.SHIPPED:
-            latest_order_date = REFERENCE_DATE - timedelta(days=1)
+            earliest_order_date = REFERENCE_DATE - timedelta(days=18)
+            latest_order_date = REFERENCE_DATE - timedelta(days=3)
 
-        date_range_days = (latest_order_date - start_date).days
+        date_range_days = (latest_order_date - earliest_order_date).days
 
-        order_date = start_date + timedelta(days=rng.randint(0, date_range_days))
+        order_date = earliest_order_date + timedelta(
+            days=rng.randint(0, date_range_days)
+        )
 
         number_of_products = rng.randint(1, 4)
 
@@ -403,21 +407,27 @@ def generate_shipments(
             )
 
         else:
-            shipment_status = rng.choices(
-                population=[
-                    ShipmentStatus.IN_TRANSIT,
-                    ShipmentStatus.DELAYED,
-                    ShipmentStatus.LOST,
-                    ShipmentStatus.RETURNED_TO_SENDER,
-                ],
-                weights=[
-                    65,
-                    20,
-                    10,
-                    5,
-                ],
-                k=1,
-            )[0]
+            if expected_delivery_date >= REFERENCE_DATE:
+                shipment_status = ShipmentStatus.IN_TRANSIT
+            else:
+                days_overdue = (REFERENCE_DATE - expected_delivery_date).days
+
+                if days_overdue <= 2:
+                    shipment_status = ShipmentStatus.DELAYED
+                else:
+                    shipment_status = rng.choices(
+                        population=[
+                            ShipmentStatus.DELAYED,
+                            ShipmentStatus.LOST,
+                            ShipmentStatus.RETURNED_TO_SENDER,
+                        ],
+                        weights=[
+                            55,
+                            30,
+                            15,
+                        ],
+                        k=1,
+                    )[0]
 
             actual_delivery_date = None
 
