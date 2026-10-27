@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Reproducible tool-use reliability and adversarial benchmarks over synthetic business data"
 readme = "README.md"
 authors = [
-    { name = "Neil", email = "neilpathak05@gmail.com" }
+    { name = "Neil" }
 ]
 requires-python = ">=3.12"
 dependencies = [

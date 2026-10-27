@@ -10,3 +10,19 @@ wheels/
 .venv
 
 data/*.db
+
+# Local secrets / environment
+.env
+.env.*
+!.env.example
+
+# Credentials / private keys
+*.pem
+*.p12
+*.pfx
+credentials.json
+secrets.json
+
+# Local databases
+*.sqlite
+*.sqlite3
